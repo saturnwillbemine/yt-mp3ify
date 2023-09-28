@@ -22,14 +22,17 @@ def download_video(link):
                 print(f"{video.title} downloaded successfully!")
                 video_path = f"./Outputs/{stream.default_filename}"
 
-        print(f"Your video will be found at {video_path}")
-
         return video_path, video.title
 
 
 def download_playlist(link):
         playlist = Playlist(link)
-
+        playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
+        for url in playlist.video_urls:
+                print(f"Downloading {url}")
+                video = download_video(url)
+                convert_to_mp3(video[0], video[1])
+        print("All Playlist Videos Downloaded.")
 
 
 def convert_to_mp3(mp4_path, mp3_filename):
@@ -44,8 +47,6 @@ def convert_to_mp3(mp4_path, mp3_filename):
 
         if os.path.exists(mp4_path):
                 os.remove(mp4_path)
-                print("Path cleanup complete")
 
 
-video = download_video('https://youtu.be/JWrvMw57slc?si=8Fd5kgip98WXkhCr')
-convert_to_mp3(video[0], video[1])
+download_playlist("https://www.youtube.com/playlist?list=PL71YAA_RLb2rxIkt0DVQqGbBVidW5hXJr")
