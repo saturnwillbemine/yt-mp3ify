@@ -4,6 +4,7 @@ from moviepy.editor import *
 import proglog
 import os
 import re
+import sys
 
 
 # YOU MUST GO INTO cipher.py of Pytube and change line 411 to 'transform_plan_raw = js'
@@ -39,7 +40,9 @@ def convert_to_mp3(mp4_path, mp3_filename):
         file_to_convert = AudioFileClip(mp4_path)
 
         print("Converting to mp3...")
-        file_to_convert.write_audiofile(f'./Outputs/{mp3_filename}.mp3',
+
+        fixed_filename = ''.join(letter for letter in mp3_filename if letter.isalnum())
+        file_to_convert.write_audiofile(f'./Outputs/{str(fixed_filename)}.mp3',
                                         verbose=False, logger=proglog.TqdmProgressBarLogger(print_messages=False))
 
         file_to_convert.close()
@@ -49,4 +52,41 @@ def convert_to_mp3(mp4_path, mp3_filename):
                 os.remove(mp4_path)
 
 
-download_playlist("https://www.youtube.com/playlist?list=PL71YAA_RLb2rxIkt0DVQqGbBVidW5hXJr")
+def main():
+
+        try:
+                        link_type = sys.argv[1]
+
+                        link = sys.argv[2]
+
+                        if link_type == 'p':
+                                download_playlist(link)
+                        elif link_type == 'v':
+                                video = download_video(link)
+                                convert_to_mp3(video[0], video[1])
+                        else:
+                                print("Link type not found!")
+                                sys.exit(2)
+        except IndexError:
+
+                print("No command line args found.")
+
+                link_type = input("'p' for playlist, 'v' for video: ")
+
+                link = input("youtube link?: ")
+
+                try:
+                        if link_type == 'p':
+                                download_playlist(link)
+                        elif link_type == 'v':
+                                video = download_video(link)
+                                convert_to_mp3(video[0], video[1])
+                        else:
+                                print("Link type not found!")
+                                sys.exit(2)
+                except KeyError:
+                        print("Link is not a playlist!")
+                        sys.exit(2)
+
+
+main()
