@@ -1,10 +1,10 @@
 from tkinter import *
-from ttkbootstrap.constants import *
+from moviepy.editor import *
 import ttkbootstrap as tb
 from pytube import YouTube, Playlist
 from pytube.exceptions import VideoUnavailable
-from mp3ify import convert_to_mp3
-import re
+import re, os, threading
+
 
 root = tb.Window(themename="darkly")
 root.title("YouTube MP3ify")
@@ -44,17 +44,36 @@ def download_playlist_noauth(link: str):
     print("All Playlist Videos Downloaded.")
 
 
+def convert_to_mp3(mp4_path: str, mp3_filename: str):
+    """
+     Converts downloaded mp4 file to a mp3 file.
+    """
+    file_to_convert = AudioFileClip(mp4_path)
+
+    label2.config(text="Converting to mp3...")
+
+    fixed_filename = ''.join(letter for letter in mp3_filename if letter.isalnum())
+
+    file_to_convert.write_audiofile(f'./Outputs/{str(fixed_filename)}.mp3',
+                                    verbose=False, logger=None)
+
+    file_to_convert.close()
+    label2.config(text="File conversion complete! Check outputs folder.")
+
+    if os.path.exists(mp4_path):
+        os.remove(mp4_path)
+
+
 # entry function
 # noinspection PyArgumentList
 def button_press():
     if chosen_type.get() == "playlist":
         download_playlist_noauth(entry.get())
+
     elif chosen_type.get() == "video":
+
         video = download_vid_noauth(entry.get())
         convert_to_mp3(video[0], video[1])
-
-    label2.config(text=f"You have selected a: {chosen_type.get()} at the link: {entry.get()}")
-    download_button.config(bootstyle="success, outline", text="Downloading...")
 
 
 # noinspection PyArgumentList
@@ -77,11 +96,11 @@ for link_type in link_types:
     (tb.Radiobutton(root, bootstyle="info, outline, toolbutton", variable=chosen_type, text=link_type, value=link_type)
      .pack(pady=10, padx=20))
 
-label2 = tb.Label(root, text="You have selected a {} with at the link {}")
+label2 = tb.Label(root, text=" ")
 label2.pack(pady=10)
 
 # button
-download_button = tb.Button(text="Convert/Download", bootstyle="success", command=button_press)
+download_button = tb.Button(text="Convert", bootstyle="success", command=button_press)
 download_button.pack(pady=20)
 
 
