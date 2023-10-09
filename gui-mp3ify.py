@@ -3,7 +3,7 @@ from moviepy.editor import *
 import ttkbootstrap as tb
 from pytube import YouTube, Playlist
 from pytube.exceptions import *
-import re, os, threading
+import re, os, threading, time
 
 
 root = tb.Window(themename="darkly")
@@ -29,7 +29,7 @@ def download_vid_noauth(link: str) -> tuple:
     else:
         stream = video.streams.get_highest_resolution()
         stream.download('./Outputs')
-        print(f"{video.title} downloaded successfully!")
+        print(f"{video.title} converted successfully!")
         video_path = f"./Outputs/{stream.default_filename}"
 
     return video_path, video.title
@@ -39,17 +39,24 @@ def download_playlist_noauth(link: str):
     """
     Downloads playlist from YouTube and saves each song as a mp4 file in outputs folder.
     """
-    playlist = Playlist(link)
-    playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
+    video_num = 1
+    try:
+        playlist = Playlist(link)
+        playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
+    except KeyError:
+        label2.config(text=f"Incorrect link type!")
     for url in playlist.video_urls:
-        print(f"Downloading {url}")
+        label2.config(text=f"Downloading video ({video_num}/{len(playlist.video_urls)})")
         try:
             video = download_vid_noauth(url)
         except AgeRestrictedError:
             label2.config(text=f"Age restricted video, skipping... use CLI version to login")
+            video_num += 1
+            time.sleep(2)
             continue
         convert_to_mp3(video[0], video[1])
-    print("All Playlist Videos Downloaded.")
+        video_num += 1
+    print("All Playlist Videos Converted! Check Outputs folder")
 
 
 def convert_to_mp3(mp4_path: str, mp3_filename: str):
@@ -66,7 +73,7 @@ def convert_to_mp3(mp4_path: str, mp3_filename: str):
                                     verbose=False, logger=None)
 
     file_to_convert.close()
-    label2.config(text="File converted! Check outputs folder.")
+    label2.config(text="File converted! Waiting...")
 
     if os.path.exists(mp4_path):
         os.remove(mp4_path)
@@ -76,13 +83,17 @@ def download_video_thread():
     link = entry.get()
     video = download_vid_noauth(link)
     convert_to_mp3(video[0], video[1])
+    label2.config(text="Video converted! Check outputs folder. ")
 
 
 
 def download_playlist_thread():
     link = entry.get()
-    download_playlist_noauth(link)
-    label2.config(text=f"All playlist videos downloaded")
+    try:
+        download_playlist_noauth(link)
+        label2.config(text=f"All playlist videos converted! Check outputs folder.")
+    except KeyError:
+        label2.config(text="Incorrect link type!")
 
 
 
