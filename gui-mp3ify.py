@@ -2,7 +2,7 @@ from tkinter import *
 from moviepy.editor import *
 import ttkbootstrap as tb
 from pytube import YouTube, Playlist
-from pytube.exceptions import VideoUnavailable, RegexMatchError
+from pytube.exceptions import *
 import re, os, threading
 
 
@@ -16,9 +16,11 @@ def download_vid_noauth(link: str) -> tuple:
             Downloads video from YouTube, with no oauth cuz gui, as a mp4 file and returns video path and title.
             """
     try:
-        video = YouTube(link, use_oauth=False, allow_oauth_cache=False)
+        video = YouTube(link, use_oauth=False, allow_oauth_cache=False)  # no oauth because login shows up in cmdl
 
     except (VideoUnavailable, RegexMatchError, UnboundLocalError) as error:
+        # RegexMatchError is playlist links in single video downloader
+        # UnboundLocalError comes after RegexMatchError
         print(f"Video at link:{link} is unavailable!")
         print(error)
         label2.config(text=f"Incorrect link type!/Video unavailable")
@@ -41,7 +43,11 @@ def download_playlist_noauth(link: str):
     playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
     for url in playlist.video_urls:
         print(f"Downloading {url}")
-        video = download_vid_noauth(url)
+        try:
+            video = download_vid_noauth(url)
+        except AgeRestrictedError:
+            label2.config(text=f"Age restricted video, skipping... use CLI version to login")
+            continue
         convert_to_mp3(video[0], video[1])
     print("All Playlist Videos Downloaded.")
 
