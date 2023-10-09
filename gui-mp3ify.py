@@ -2,13 +2,12 @@ from tkinter import *
 from moviepy.editor import *
 import ttkbootstrap as tb
 from pytube import YouTube, Playlist
-from pytube.exceptions import VideoUnavailable
+from pytube.exceptions import VideoUnavailable, RegexMatchError
 import re, os, threading
 
 
 root = tb.Window(themename="darkly")
 root.title("YouTube MP3ify")
-root.iconbitmap('ytdl.ico')
 root.geometry('500x370')
 
 
@@ -19,8 +18,11 @@ def download_vid_noauth(link: str) -> tuple:
     try:
         video = YouTube(link, use_oauth=False, allow_oauth_cache=False)
 
-    except VideoUnavailable:
+    except (VideoUnavailable, RegexMatchError, UnboundLocalError) as error:
         print(f"Video at link:{link} is unavailable!")
+        print(error)
+        label2.config(text=f"Incorrect link type!/Video unavailable")
+
 
     else:
         stream = video.streams.get_highest_resolution()
@@ -50,7 +52,7 @@ def convert_to_mp3(mp4_path: str, mp3_filename: str):
     """
     file_to_convert = AudioFileClip(mp4_path)
 
-    label2.config(text="Converting to mp3...")
+    label2.config(text=f"Converting {mp3_filename} to mp3...")
 
     fixed_filename = ''.join(letter for letter in mp3_filename if letter.isalnum())
 
@@ -58,23 +60,35 @@ def convert_to_mp3(mp4_path: str, mp3_filename: str):
                                     verbose=False, logger=None)
 
     file_to_convert.close()
-    label2.config(text="File conversion complete! Check outputs folder.")
+    label2.config(text="File converted! Check outputs folder.")
 
     if os.path.exists(mp4_path):
         os.remove(mp4_path)
+
+
+def download_video_thread():
+    link = entry.get()
+    video = download_vid_noauth(link)
+    convert_to_mp3(video[0], video[1])
+
+
+
+def download_playlist_thread():
+    link = entry.get()
+    download_playlist_noauth(link)
+    label2.config(text=f"All playlist videos downloaded")
+
 
 
 # entry function
 # noinspection PyArgumentList
 def button_press():
     if chosen_type.get() == "playlist":
-        download_playlist_noauth(entry.get())
-
+        playlist_thread = threading.Thread(target=download_playlist_thread)
+        playlist_thread.start()
     elif chosen_type.get() == "video":
-
-        video = download_vid_noauth(entry.get())
-        convert_to_mp3(video[0], video[1])
-
+        video_thread = threading.Thread(target=download_video_thread)
+        video_thread.start()
 
 # noinspection PyArgumentList
 # label
