@@ -1,11 +1,7 @@
 from pytube import YouTube, Playlist
-from pytube.exceptions import VideoUnavailable
+from pytube.exceptions import *
 from moviepy.editor import *
-import proglog
-import os
-import re
-import sys
-
+import proglog, os, re, sys, time
 
 # YOU MUST GO INTO cipher.py of Pytube and change line 411 to 'transform_plan_raw = js'
 
@@ -17,8 +13,8 @@ def download_video(link: str) -> tuple:
         try:
                 video = YouTube(link, use_oauth=True, allow_oauth_cache=True)
 
-        except VideoUnavailable:
-                print(f"Video at link:{link} is unavailable!")
+        except (VideoUnavailable, RegexMatchError, UnboundLocalError):
+                print(f"Video is unavailable/Incorrect link type!")
 
         else:
                 stream = video.streams.get_highest_resolution()
@@ -33,12 +29,23 @@ def download_playlist(link: str):
         """
         Downloads playlist from YouTube and saves each song as a mp4 file in outputs folder.
         """
-        playlist = Playlist(link)
-        playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
+        video_num = 1
+        try:
+                playlist = Playlist(link)
+                playlist._video_regex = re.compile(r"\"url\":\"(/watch\?v=[\w-]*)")
+        except KeyError:
+                print(f"Playlist is unavailable/Incorrect link type!")
         for url in playlist.video_urls:
-                print(f"Downloading {url}")
-                video = download_video(url)
+                print(f"Downloading {video_num}/{len(playlist.video_urls)}")
+                try:
+                        video = download_video(url)
+                except AgeRestrictedError:
+                        print("Age restricted video.. skipping. Download it using 'v'")
+                        video_num += 1
+                        time.sleep(2)
+                        continue
                 convert_to_mp3(video[0], video[1])
+                video_num += 1
         print("All Playlist Videos Downloaded.")
 
 
@@ -72,18 +79,26 @@ def main():
 
                 link = sys.argv[2]
 
-                if link_type == 'p':
-                        download_playlist(link)
-                elif link_type == 'v':
-                        video = download_video(link)
-                        convert_to_mp3(video[0], video[1])
-                else:
-                        print("Link type not found!")
-                        sys.exit(2)
+                try:
+                        if link_type == 'p':
+                                print("Downloading Playlist...")
+                                download_playlist(link)
+                        elif link_type == 'v':
+                                print("Downloading Video...")
+                                try:
+                                        video = download_video(link)
+                                except (VideoUnavailable, RegexMatchError, UnboundLocalError):
+                                        main()
+                                convert_to_mp3(video[0], video[1])
+                        else:
+                                print("Link type not found!")
+                                main()
+
+                except KeyError:
+                        print("Link is not a playlist!")
+                        main()
 
         except IndexError:
-
-                print("No command line args found.")
 
                 link_type = input("'p' for playlist, 'v' for video: ")
 
@@ -95,15 +110,20 @@ def main():
                                 download_playlist(link)
                         elif link_type == 'v':
                                 print("Downloading Video...")
-                                video = download_video(link)
+                                try:
+                                        video = download_video(link)
+                                except (VideoUnavailable, RegexMatchError, UnboundLocalError):
+                                        main()
                                 convert_to_mp3(video[0], video[1])
                         else:
                                 print("Link type not found!")
-                                sys.exit(2)
+                                main()
 
                 except KeyError:
                         print("Link is not a playlist!")
-                        sys.exit(2)
+                        main()
+
+                main()
 
 
 if __name__ == "__main__":
