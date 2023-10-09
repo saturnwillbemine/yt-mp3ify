@@ -25,7 +25,6 @@ def download_vid_noauth(link: str) -> tuple:
         print(error)
         label2.config(text=f"Incorrect link type!/Video unavailable")
 
-
     else:
         stream = video.streams.get_highest_resolution()
         stream.download('./Outputs')
