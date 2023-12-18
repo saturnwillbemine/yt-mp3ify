@@ -54,7 +54,7 @@ It will still run, it will ask for inputs during runtime.
 
 ## Authors
 
-- [@saturnwillbemine](https://www.github.com/saturnwwillbemine)
+- [@saturnwillbemine](https://www.github.com/saturnwillbemine)
 
 Shoutout [pytube](https://github.com/pytube/pytube) and [moviepy](https://github.com/Zulko/moviepy)
 ## Screenshots
