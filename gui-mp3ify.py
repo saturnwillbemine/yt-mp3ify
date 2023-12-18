@@ -85,7 +85,6 @@ def download_video_thread():
     label2.config(text="Video converted! Check outputs folder. ")
 
 
-
 def download_playlist_thread():
     link = entry.get()
     try:
@@ -93,7 +92,6 @@ def download_playlist_thread():
         label2.config(text=f"All playlist videos converted! Check outputs folder.")
     except KeyError:
         label2.config(text="Incorrect link type!")
-
 
 
 # entry function
@@ -106,15 +104,19 @@ def button_press():
         video_thread = threading.Thread(target=download_video_thread)
         video_thread.start()
 
+
+def open_folder():
+    path = os.path.realpath("./Outputs")
+    os.startfile(path)
+
 # noinspection PyArgumentList
 # label
 label = tb.Label(text="YTMP3ify", font=("Helvetica", 28), bootstyle="default")
 label.pack(pady=25)
 
-
 # entry
 entry = tb.Entry(root)
-entry.pack(pady=15)
+entry.pack(pady=20)
 
 # radio buttons
 link_types = ["playlist", "video"]
@@ -124,14 +126,17 @@ chosen_type = StringVar()
 for link_type in link_types:
 
     (tb.Radiobutton(root, bootstyle="info, outline, toolbutton", variable=chosen_type, text=link_type, value=link_type)
-     .pack(pady=10, padx=20))
+     .pack(pady=5, padx=20))
 
 label2 = tb.Label(root, text=" ")
-label2.pack(pady=10)
+label2.pack(pady=2.5)
 
 # button
 download_button = tb.Button(text="Convert", bootstyle="success", command=button_press)
-download_button.pack(pady=20)
+download_button.pack(pady=5)
+
+folder_button = tb.Button(text="Show Output Folder", bootstyle="secondary", command=open_folder)
+folder_button.pack(pady=10)
 
 
 root.mainloop()
