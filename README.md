@@ -34,6 +34,8 @@ Install dependencies
   pip install pytube
   pip install moviepy
   pip install proglog
+
+  # FOLLOW INSTRUCTIONS IN mp3ify.py #
 ```
 
 Available `link_types`
