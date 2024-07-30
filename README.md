@@ -8,6 +8,8 @@ A simple python YouTube-to-MP3 converter.
 
 ### Using .exe file
 
+Download the executable [here](https://github.com/saturnwillbemine/yt-mp3ify/releases/tag/v1.1)
+
 Running `YTMP3ify.exe` is an windowed application where you can use a graphical user interface to convert videos.
 
 The graphical interface currently doesn't support age restricted videos, use CLI to download them.
