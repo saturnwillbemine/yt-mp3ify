@@ -6,8 +6,8 @@ import proglog, os, re, sys, time
 # YOU MUST GO INTO cipher.py of Pytube and change line 411 to 'transform_plan_raw = js'
 
 # YOU MUST ALSO change lines 272 and 273 in cipher.py of Pytube to:
-#  r'a.[a-zA-Z]\s*&&\s*([a-z]\s*=\sa.get("n"))\s&&.?||\s([a-z]+)',
-#  r'([a-z]\s*=\s*([a-zA-Z0-9$]+)([\d+])?([a-z])', ]
+#  r'a\.[a-zA-Z]\s*&&\s*\([a-z]\s*=\s*a\.get\("n"\)\)\s*&&.*?\|\|\s*([a-z]+)',
+#  r'\([a-z]\s*=\s*([a-zA-Z0-9$]+)(\[\d+\])\([a-z]\)',
 
 
 def download_video(link: str) -> tuple:
